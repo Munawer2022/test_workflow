@@ -47,11 +47,16 @@ jobs:
     needs: build
     steps:
       - uses: actions/checkout@v3
+      - name: Print environment variables
+        run: |
+          echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}"
+          echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}"
+          echo "GDRIVE_KEY=${{ secrets.GDRIVE_KEY }}"
       - name: Upload APK to Google Drive
         uses: satackey/action-google-drive@v1
         with:
           skicka-tokencache-json: ${{ secrets.GDRIVE_KEY }}
-          google-client-id: ${{ secrets.GDRIVE_FOLDER_ID }}
+          google-client-id: ${{ secrets.GOOGLE_CLIENT_ID }}
           google-client-secret: ${{ secrets.GOOGLE_CLIENT_SECRET }}
           upload-from: build/app/outputs/apk/release/
           upload-to: /apks/
@@ -59,7 +64,7 @@ jobs:
         uses: satackey/action-google-drive@v1
         with:
           skicka-tokencache-json: ${{ secrets.GDRIVE_KEY }}
-          google-client-id: ${{ secrets.GDRIVE_FOLDER_ID }}
+          google-client-id: ${{ secrets.GOOGLE_CLIENT_ID }}
           google-client-secret: ${{ secrets.GOOGLE_CLIENT_SECRET }}
           upload-from: build/ios/iphoneos/app.ipa
           upload-to: /ipas/
