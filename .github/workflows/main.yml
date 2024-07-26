@@ -41,6 +41,8 @@ jobs:
         run: |
           zip -r release_archive.zip build/app/outputs/apk/release build/ios/iphoneos/app.ipa
           echo "archive-path=release_archive.zip" >> $GITHUB_ENV
+      - name: List files in workspace (for debugging)
+        run: ls -la $GITHUB_WORKSPACE
 
   upload:
     name: Upload & Notify
@@ -49,12 +51,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+      - name: Display files in workspace (for debugging)
+        run: ls -la $GITHUB_WORKSPACE
       - name: Upload release to Google Drive
         id: upload_to_gdrive
         uses: adityak74/google-drive-upload-git-action@main
         with:
           credentials: ${{ secrets.GDRIVE_KEY }}
-          filename: ${{ github.workspace }}/release_archive.zip
+          filename: ${{ needs.build.outputs.archive-path }}
           folderId: ${{ secrets.GDRIVE_FOLDER_ID }}
           name: "release_v1.0.${{ github.run_number }}.zip" # optional string
           overwrite: "true" # optional boolean
