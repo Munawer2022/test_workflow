@@ -54,7 +54,7 @@ jobs:
         uses: adityak74/google-drive-upload-git-action@main
         with:
           credentials: ${{ secrets.GDRIVE_KEY }}
-          filename: ${{ needs.build.outputs.archive-path }}
+          filename: ${{ github.workspace }}/release_archive.zip
           folderId: ${{ secrets.GDRIVE_FOLDER_ID }}
           name: "release_v1.0.${{ github.run_number }}.zip" # optional string
           overwrite: "true" # optional boolean
