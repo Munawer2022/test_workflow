@@ -20,7 +20,7 @@ jobs:
       - uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
-          java-version: '17' # Use a supported version
+          java-version: '17'
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
@@ -40,6 +40,20 @@ jobs:
           artifacts: "build/app/outputs/apk/release/*,build/ios/iphoneos/app.ipa"
           tag: v1.0.${{ github.run_number }}
           token: ${{ secrets.TOKEN }}
+      - name: Upload to Google Drive
+        uses: satackey/action-google-drive@v1
+        with:
+          skicka-tokencache-json: ${{ secrets.GDRIVE_KEY }}
+          google-client-id: ${{ secrets.GDRIVE_FOLDER_ID }}
+          upload-from: build/app/outputs/apk/release/
+          upload-to: /apks/
+      - name: Upload IPA to Google Drive
+        uses: satackey/action-google-drive@v1
+        with:
+          skicka-tokencache-json: ${{ secrets.GDRIVE_KEY }}
+          google-client-id: ${{ secrets.GDRIVE_FOLDER_ID }}
+          upload-from: build/ios/iphoneos/app.ipa
+          upload-to: /ipas/
       - name: Send notification to Slack
         run: |
           curl -X POST -H 'Content-type: application/json' --data '{
