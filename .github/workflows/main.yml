@@ -42,8 +42,6 @@ jobs:
           token: ${{ secrets.TOKEN }}
       - name: Archive release files
         run: |
-          sudo apt-get update
-          sudo apt-get install zip
           zip -r release_archive.zip build/app/outputs/apk/release build/ios/iphoneos/app.ipa
       - name: Upload release to Google Drive
         id: upload_to_gdrive
