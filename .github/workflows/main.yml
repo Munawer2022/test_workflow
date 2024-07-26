@@ -45,6 +45,15 @@ jobs:
           curl -X POST -H 'Content-type: application/json' --data '{
             "text": "New Flutter release build is available. Version: v1.0.${{ github.run_number }}"
           }' ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  upload-to-drive:
+    name: Upload to Google Drive
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
       - name: Upload to Google Drive
         uses: adityak74/google-drive-upload-git-action@main
         with:
