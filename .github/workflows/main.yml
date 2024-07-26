@@ -52,6 +52,7 @@ jobs:
         with:
           skicka-tokencache-json: ${{ secrets.GDRIVE_KEY }}
           google-client-id: ${{ secrets.GDRIVE_FOLDER_ID }}
+          google-client-secret: ${{ secrets.GOOGLE_CLIENT_SECRET }}
           upload-from: build/app/outputs/apk/release/
           upload-to: /apks/
       - name: Upload IPA to Google Drive
@@ -59,6 +60,7 @@ jobs:
         with:
           skicka-tokencache-json: ${{ secrets.GDRIVE_KEY }}
           google-client-id: ${{ secrets.GDRIVE_FOLDER_ID }}
+          google-client-secret: ${{ secrets.GOOGLE_CLIENT_SECRET }}
           upload-from: build/ios/iphoneos/app.ipa
           upload-to: /ipas/
       - name: Send notification to Slack
