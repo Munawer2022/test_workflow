@@ -34,13 +34,13 @@ jobs:
           ln -s ../Runner.app
           cd ..
           zip -r app.ipa Payload
+      - name: Ensure release directory exists
+        run: mkdir -p $GITHUB_WORKSPACE/build/release
       - name: Archive release files
-        id: archive
         run: |
-          mkdir -p $GITHUB_WORKSPACE/build/release
           zip -r $GITHUB_WORKSPACE/build/release/release_archive.zip build/app/outputs/apk/release build/ios/iphoneos/app.ipa
-      - name: List files in release directory (for debugging)
-        run: ls -la $GITHUB_WORKSPACE/build/release
+      - name: List files in build directory (for debugging)
+        run: ls -la $GITHUB_WORKSPACE/build
 
   upload:
     name: Upload & Notify
