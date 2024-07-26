@@ -15,8 +15,6 @@ jobs:
   build:
     name: Build & Archive
     runs-on: macos-latest
-    outputs:
-      archive-path: ${{ steps.archive.outputs.archive-path }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-java@v3
@@ -39,10 +37,10 @@ jobs:
       - name: Archive release files
         id: archive
         run: |
-          zip -r release_archive.zip build/app/outputs/apk/release build/ios/iphoneos/app.ipa
-          echo "archive-path=release_archive.zip" >> $GITHUB_ENV
-      - name: List files in workspace (for debugging)
-        run: ls -la $GITHUB_WORKSPACE
+          mkdir -p $GITHUB_WORKSPACE/build/release
+          zip -r $GITHUB_WORKSPACE/build/release/release_archive.zip build/app/outputs/apk/release build/ios/iphoneos/app.ipa
+      - name: List files in release directory (for debugging)
+        run: ls -la $GITHUB_WORKSPACE/build/release
 
   upload:
     name: Upload & Notify
@@ -51,14 +49,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      - name: List files in workspace (for debugging)
-        run: ls -la $GITHUB_WORKSPACE
+      - name: List files in release directory (for debugging)
+        run: ls -la $GITHUB_WORKSPACE/build/release
       - name: Upload release to Google Drive
         id: upload_to_gdrive
         uses: adityak74/google-drive-upload-git-action@main
         with:
           credentials: ${{ secrets.GDRIVE_KEY }}
-          filename: ${{ github.workspace }}/release_archive.zip
+          filename: ${{ github.workspace }}/build/release/release_archive.zip
           folderId: ${{ secrets.GDRIVE_FOLDER_ID }}
           name: "release_v1.0.${{ github.run_number }}.zip" # optional string
           overwrite: "true" # optional boolean
