@@ -51,14 +51,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      - name: Display files in workspace (for debugging)
+      - name: List files in workspace (for debugging)
         run: ls -la $GITHUB_WORKSPACE
       - name: Upload release to Google Drive
         id: upload_to_gdrive
         uses: adityak74/google-drive-upload-git-action@main
         with:
           credentials: ${{ secrets.GDRIVE_KEY }}
-          filename: ${{ needs.build.outputs.archive-path }}
+          filename: ${{ github.workspace }}/release_archive.zip
           folderId: ${{ secrets.GDRIVE_FOLDER_ID }}
           name: "release_v1.0.${{ github.run_number }}.zip" # optional string
           overwrite: "true" # optional boolean
