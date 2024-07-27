@@ -67,10 +67,6 @@ jobs:
           name: release
       - name: Verify downloaded artifact
         run: ls -lh release.zip
-      - name: Debug GDRIVE_FOLDER_ID
-        run: echo ${{ secrets.GDRIVE_FOLDER_ID }}
-      - name: Debug GDRIVE_KEY
-        run: echo ${{ secrets.GDRIVE_KEY }} | jq .
       - name: Upload to Google Drive
         uses: mathisve/gdrive-upload-action@main
         with:
