@@ -6,8 +6,6 @@ on:
       - main
       - master
       - develop
-  release:
-    types: [published]
 
 jobs:
   build:
