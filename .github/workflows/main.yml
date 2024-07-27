@@ -37,7 +37,7 @@ jobs:
       - name: Push to Releases
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "build/app/outputs/apk/release/app-x86_64-release.apk,build/ios/iphoneos/app.ipa"
+          artifacts: "build/app/outputs/apk/release/*,build/ios/iphoneos/app.ipa"
           tag: v1.0.${{ github.run_number }}
           token: ${{ secrets.TOKEN }}
       - name: Send notification to Slack
@@ -54,14 +54,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Upload APK to Google Drive
-        uses: adityak74/google-drive-upload-git-action@main
-        with:
-          credentials: ${{ secrets.GDRIVE_KEY }}
-          filename: "build/app/outputs/apk/release/app-x86_64-release.apk"
-          folderId: ${{ secrets.GDRIVE_FOLDER_ID }}
-          name: "app-x86_64-release_v1.0.${{ github.run_number }}.apk"
-          overwrite: "true"
+      # - name: Upload APK to Google Drive
+      #   uses: adityak74/google-drive-upload-git-action@main
+      #   with:
+      #     credentials: ${{ secrets.GDRIVE_KEY }}
+      #     filename: "build/app/outputs/apk/release/*.apk"
+      #     folderId: ${{ secrets.GDRIVE_FOLDER_ID }}
+      #     name: "app_v1.0.${{ github.run_number }}.apk"
+      #     overwrite: "true"
 
       - name: Upload IPA to Google Drive
         uses: adityak74/google-drive-upload-git-action@main
