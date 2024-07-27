@@ -58,14 +58,21 @@ jobs:
         with:
           name: build-artifacts
           path: ./build
+      - name: Set up gdrive
+        run: |
+          curl -L -o gdrive https://github.com/prasmussen/gdrive/releases/download/2.1.0/gdrive-linux-x64
+          chmod +x gdrive
+          sudo mv gdrive /usr/local/bin/gdrive
+      - name: Authenticate gdrive
+        run: |
+          echo '${{ secrets.GDRIVE_SERVICE_ACCOUNT_KEY }}' > /tmp/gdrive_service_account.json
+          gdrive about -s /tmp/gdrive_service_account.json
       - name: Upload to Google Drive
-        uses: mkrakowitzer/actions-googledrive@master
-        with:
-          upload-from: ./build
-          upload-to: ${{ secrets.GDRIVE_FOLDER_ID }}
-          skicka-tokencache-json: ${{ secrets.GDRIVE_KEY }}
-          google-client-id: ${{ secrets.GOOGLE_CLIENT_ID }}
-          google-client-secret: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+        run: |
+          GDRIVE_FOLDER_ID=${{ secrets.GDRIVE_FOLDER_ID }}
+          for file in ./build/*; do
+            gdrive upload --parent $GDRIVE_FOLDER_ID "$file"
+          done
       - name: Send notification to Slack
         run: |
           curl -X POST -H 'Content-type: application/json' --data '{
