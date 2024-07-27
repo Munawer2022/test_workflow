@@ -10,8 +10,8 @@ on:
     types: [published]
 
 jobs:
-  build-and-upload:
-    name: Build, Release & Upload to Google Drive
+  build:
+    name: Build & Release
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
@@ -38,6 +38,11 @@ jobs:
           cp build/app/outputs/apk/release/* release/
           cp build/ios/iphoneos/app.ipa release/
           zip -r release.zip release/
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: release
+          path: release.zip
       - name: Push to Releases
         id: release
         uses: ncipollo/release-action@v1
@@ -50,6 +55,16 @@ jobs:
           curl -X POST -H 'Content-type: application/json' --data '{
             "text": "New Flutter release build is available. Version: v1.0.${{ github.run_number }}. Release URL: https://github.com/${{ github.repository }}/releases/tag/v1.0.${{ github.run_number }}"
           }' ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  upload-to-gdrive:
+    name: Upload to Google Drive
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Download release artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: release
       - name: Upload to Google Drive
         uses: mathisve/gdrive-upload-action@main
         with:
