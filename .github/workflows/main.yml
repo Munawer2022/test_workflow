@@ -1,4 +1,4 @@
-name: Upload Release to Google Drive and Notify Slack
+name: Release Upload and Notify
 
 on:
   release:
@@ -9,119 +9,36 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '14'
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: 'stable'
 
-      - name: Install dependencies
-        run: npm install -g googleapis axios
+    - name: Install dependencies
+      run: flutter pub get
 
-      - name: Upload APK to Google Drive
-        env:
-          GDRIVE_CLIENT_ID: ${{ secrets.GDRIVE_CLIENT_ID }}
-          GDRIVE_CLIENT_SECRET: ${{ secrets.GDRIVE_CLIENT_SECRET }}
-          GDRIVE_REFRESH_TOKEN: ${{ secrets.GDRIVE_REFRESH_TOKEN }}
-          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
-        run: |
-          echo "Uploading APK to Google Drive..."
-          node <<EOF
-          const { google } = require('googleapis');
-          const fs = require('fs');
-          const path = 'path/to/your/apk/app-x86_64-release.apk';
+    - name: Build APK
+      run: flutter build apk --release
 
-          const oauth2Client = new google.auth.OAuth2(
-            process.env.GDRIVE_CLIENT_ID,
-            process.env.GDRIVE_CLIENT_SECRET,
-            'https://developers.google.com/oauthplayground'
-          );
+    - name: Build IPA (iOS)
+      if: runner.os == 'macOS'
+      run: flutter build ios --release
 
-          oauth2Client.setCredentials({
-            refresh_token: process.env.GDRIVE_REFRESH_TOKEN,
-          });
+    - name: Upload to Google Drive
+      env:
+        GDRIVE_CLIENT_ID: ${{ secrets.GDRIVE_CLIENT_ID }}
+        GDRIVE_CLIENT_SECRET: ${{ secrets.GDRIVE_CLIENT_SECRET }}
+        GDRIVE_REFRESH_TOKEN: ${{ secrets.GDRIVE_REFRESH_TOKEN }}
+        GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
+      run: |
+        pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib
+        python upload_to_drive.py "build/app/outputs/flutter-apk/app-release.apk" "build/ios/iphoneos/Runner.app" $GDRIVE_FOLDER_ID
 
-          const drive = google.drive({ version: 'v3', auth: oauth2Client });
-
-          async function uploadFile() {
-            const res = await drive.files.create({
-              requestBody: {
-                name: 'app-x86_64-release.apk',
-                parents: [process.env.GDRIVE_FOLDER_ID],
-              },
-              media: {
-                mimeType: 'application/vnd.android.package-archive',
-                body: fs.createReadStream(path),
-              },
-            });
-            console.log(res.data);
-          }
-
-          uploadFile().catch(console.error);
-          EOF
-
-      - name: Upload IPA to Google Drive
-        env:
-          GDRIVE_CLIENT_ID: ${{ secrets.GDRIVE_CLIENT_ID }}
-          GDRIVE_CLIENT_SECRET: ${{ secrets.GDRIVE_CLIENT_SECRET }}
-          GDRIVE_REFRESH_TOKEN: ${{ secrets.GDRIVE_REFRESH_TOKEN }}
-          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
-        run: |
-          echo "Uploading IPA to Google Drive..."
-          node <<EOF
-          const { google } = require('googleapis');
-          const fs = require('fs');
-          const path = 'path/to/your/ipa/app-release.ipa';
-
-          const oauth2Client = new google.auth.OAuth2(
-            process.env.GDRIVE_CLIENT_ID,
-            process.env.GDRIVE_CLIENT_SECRET,
-            'https://developers.google.com/oauthplayground'
-          );
-
-          oauth2Client.setCredentials({
-            refresh_token: process.env.GDRIVE_REFRESH_TOKEN,
-          });
-
-          const drive = google.drive({ version: 'v3', auth: oauth2Client });
-
-          async function uploadFile() {
-            const res = await drive.files.create({
-              requestBody: {
-                name: 'app-release.ipa',
-                parents: [process.env.GDRIVE_FOLDER_ID],
-              },
-              media: {
-                mimeType: 'application/octet-stream',
-                body: fs.createReadStream(path),
-              },
-            });
-            console.log(res.data);
-          }
-
-          uploadFile().catch(console.error);
-          EOF
-
-      - name: Notify Slack
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-        run: |
-          echo "Sending notification to Slack..."
-          node <<EOF
-          const axios = require('axios');
-
-          const webhookUrl = process.env.SLACK_WEBHOOK_URL;
-          const message = {
-            text: "A new release has been uploaded to Google Drive.",
-          };
-
-          axios.post(webhookUrl, message)
-            .then(response => {
-              console.log('Notification sent successfully:', response.data);
-            })
-            .catch(error => {
-              console.error('Error sending notification:', error);
-            });
-          EOF
+    - name: Send Slack notification
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      run: |
+        curl -X POST -H 'Content-type: application/json' --data '{"text":"New release has been uploaded to Google Drive!"}' $SLACK_WEBHOOK_URL
