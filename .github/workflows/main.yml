@@ -1,8 +1,15 @@
-name: Release Upload and Notify
-
 on:
-  release:
-    types: [published]
+  pull_request:
+    branches:
+      - main
+      - master
+  push:
+    branches:
+      - main
+      - master
+      - develop
+
+name: "Build & Release"
 
 jobs:
   upload-and-notify:
